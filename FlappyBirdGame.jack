@@ -1,0 +1,396 @@
+class FlappyBirdGame
+{
+  /*
+  Versión simplificada del juego Flappy Bird.
+  */
+
+  field FlappyBird bird;                  // Objeto FlappyBird.
+  field int bird_wing_state_count;        // Control del estado de alas del pájaro.
+  field int bird_fall_count;              // Control del movimiento de caída.
+  field int bird_height_default;          // Altura inicial por defecto.
+  field Array pipes;                      // Tuberías visibles en pantalla.
+  field int count_pipes;                  // Número de tuberías visibles.
+  field int dist_between_pipes;           // Intervalo entre tuberías.
+  field int dist_after_last_pipe;         // Espacio tras la última tubería creada.
+  field int jumps;                        // Número de saltos realizados.
+  field int score;                        // Puntuación del jugador
+  field Array scored_pipes;               // Registro de tuberías ya puntuadas
+
+  /*
+  Constructor del juego Flappy Bird.
+  */
+  constructor FlappyBirdGame new() {
+    var int i;
+    
+    let bird_height_default = 150;
+    let pipes = Array.new(10);
+    let scored_pipes = Array.new(10);    // Array para registrar tuberías ya puntuadas
+    let count_pipes = 0;
+    let dist_between_pipes = 100;
+    let dist_after_last_pipe = 0;
+    let jumps = 1;
+    let score = 0;                       // Inicializar puntaje a cero
+    
+    // Inicializar scored_pipes (en Jack, 0 = falso, -1 = verdadero)
+    let i = 0;
+    while (i < 10) {
+      let scored_pipes[i] = 0;  // Inicializar como falso (0)
+      let i = i + 1;
+    }
+
+    return this;
+  }
+
+  /*
+  Muestra instrucciones en pantalla.
+  */
+  method void displayInstructions()
+  {
+    do Output.moveCursor(0, 0);
+    do Output.printString("Flappy Bird Simple");
+    do Output.println();
+    do Output.printString("Espacio para saltar");
+    do Output.println();
+    do Output.printString("'q' para salir");
+
+    return;
+  }
+
+  /*
+  Muestra el puntaje en la pantalla
+  */
+  method void displayScore() {
+    do Output.moveCursor(5, 0);         // Posición más abajo para no sobreescribir instrucciones
+    do Output.printString("Puntos: ");
+    do Output.printInt(score);          // Mostrar el puntaje actual
+    
+    return;
+  }
+
+  /*
+  Bucle principal del juego.
+  */
+  method void run() {
+     var char key;
+     var char last_key;
+
+     do initializeGameState();
+     do waitForGameToStart();
+     let last_key = 32;
+     while (~(key = 81)) { // tecla 'q'
+
+        // Determina si ha ocurrido un nuevo salto.
+        if ((key = 32) & ~(last_key = 32)) {      // barra espaciadora
+          let jumps = jumps + 1;
+          do bird.moveUp();
+        } else {
+          do updateBirdFallState();
+          do updateBirdWingState();
+        }
+
+        // Si hay colisión, reiniciar el juego
+        if (findCollision()) {
+          do whiteout();
+          do Output.moveCursor(10, 20);
+          do Output.printString("Game Over!");
+          do Output.moveCursor(12, 20);
+          do Output.printString("Puntaje Final: ");
+          do Output.printInt(score);
+          do Sys.wait(3000);
+          do initializeGameState();
+          do waitForGameToStart();
+        }
+
+        // Dibujar el juego actualizado
+        do draw();
+
+        // Comprobar tecla pulsada
+        let last_key = key;
+        let key = Keyboard.keyPressed();
+        do Sys.wait(10);
+    }
+
+    return;
+  }
+
+  /*
+  Anima el pájaro antes de que comience el juego.
+  */
+  method void waitForGameToStart()
+  {
+    var char key;
+    let key = Keyboard.keyPressed();
+
+    while (key = 0) {
+       do Sys.wait(10);
+       let key = Keyboard.keyPressed();
+       do bird.draw();
+       do updateBirdWingState();
+    }
+
+    return;
+  }
+
+  /*
+  Establece todos los campos al estado inicial.
+  */
+  method void initializeGameState()
+  {
+    var Pipe pipe;
+    var int i;
+    let i = 0;
+
+    do whiteout();
+    do displayInstructions();
+
+    let bird = FlappyBird.new(bird_height_default);
+
+    // Elimina las tuberías existentes.
+    while (i < count_pipes) {
+      let pipe = pipes[i];
+      do pipe.dispose();
+      let i = i + 1;
+    }
+
+    let count_pipes = 0;
+    let bird_wing_state_count = 1;
+    let bird_fall_count = 1;
+    let dist_after_last_pipe = dist_between_pipes;
+    let score = 0;                       // Reiniciar puntaje al reiniciar el juego
+    
+    // Reiniciar el registro de tuberías puntuadas
+    let i = 0;
+    while (i < 10) {
+      let scored_pipes[i] = 0;  // 0 = falso en Jack
+      let i = i + 1;
+    }
+
+    return;
+  }
+
+  /*
+  Limpia la pantalla.
+  */
+  method void whiteout()
+  {
+    do Screen.setColor(false);
+    do Screen.drawRectangle(0, 0, 511, 255);
+
+    return;
+  }
+
+  /*
+  Actualiza el estado de caída del pájaro.
+  */
+  method void updateBirdFallState()
+  {
+    // Solo mueve el pájaro cada cinco ciclos para evitar que caiga demasiado rápido.
+    if (bird_fall_count = 5) {
+      do bird.moveDown();
+      let bird_fall_count = 1;
+    } else {
+      let bird_fall_count = bird_fall_count + 1;
+    }
+
+    return;
+  }
+
+  /*
+  Actualiza el estado de las alas.
+  */
+  method void updateBirdWingState()
+  {
+    // Solo cambia las alas cada cinco ciclos para evitar cambios demasiado rápidos.
+    if (bird_wing_state_count = 5) {
+      do bird.cycleWingState();
+      let bird_wing_state_count = 1;
+    } else {
+      let bird_wing_state_count = bird_wing_state_count + 1;
+    }
+
+    return;
+  }
+
+  /*
+  Dibuja objetos en pantalla y actualiza sus coordenadas.
+  */
+  method void draw()
+  {
+    var int i;
+    var Pipe pipe;
+    
+    // Mueve las tuberías a la izquierda.
+    do shiftPipesLeft();
+    
+    // Comprobar si se ha pasado alguna tubería para actualizar el puntaje
+    let i = 0;
+    while (i < count_pipes) {
+      let pipe = pipes[i];
+      // Si el pájaro ha pasado la tubería y aún no se ha contado
+      if ((pipe.getXOffset() + pipe.getWidthCurrent()) < bird.getXOffset()) {
+        if (scored_pipes[i] = 0) {  // Si aún no se ha puntuado (0 = falso)
+          let score = score + 1;    // Incrementar puntaje
+          let scored_pipes[i] = -1; // Marcar como puntuada (-1 = verdadero)
+        }
+      }
+      let i = i + 1;
+    }
+    
+    // Elimina la primera tubería si ya no está en pantalla.
+    do disposeUnseenPipe();
+    
+    // Crea una nueva tubería si la última se ha movido lo suficiente.
+    do createNewPipe();
+
+    do bird.draw();
+    do displayScore();                  // Mostrar el puntaje actualizado
+    
+    return;
+  }
+
+  /*
+  Dibuja las tuberías y desplaza sus coordenadas hacia la izquierda.
+  */
+  method void shiftPipesLeft()
+  {
+    var Pipe pipe;
+    var int i;
+
+    let i = 0;
+    while (i < count_pipes) {
+      let pipe = pipes[i];
+      do pipe.draw();
+      do pipe.moveLeft();
+      let i = i + 1;
+    }
+
+    return;
+  }
+
+  /*
+  Elimina objetos Pipe cuando han salido de la pantalla.
+  */
+  method void disposeUnseenPipe()
+  {
+    var int i;
+    var Pipe pipe;
+
+    if (count_pipes = 0) {
+      return;
+    }
+
+    let pipe = pipes[0];
+
+    if (pipe.getWidthCurrent() < 1) {
+      do pipe.dispose();
+      let count_pipes = count_pipes - 1;
+      
+      // Mover todos los elementos en el array de tuberías
+      let i = 0;
+      while (i < count_pipes) {
+        let pipes[i] = pipes[i+1];
+        let scored_pipes[i] = scored_pipes[i+1];  // También actualizar el registro de puntuación
+        let i = i + 1;
+      }
+    }
+
+    return;
+  }
+
+  /*
+  Crea una nueva tubería en pantalla.
+  */
+  method void createNewPipe()
+  {
+    var Pipe pipe;
+
+    if (dist_after_last_pipe = dist_between_pipes) {
+      let pipes[count_pipes] = Pipe.new(jumps);
+      let scored_pipes[count_pipes] = 0;  // Marcar la nueva tubería como no puntuada (0 = falso)
+      let count_pipes = count_pipes + 1;
+      let dist_after_last_pipe = 0;
+    } else {
+      let pipe = pipes[0];
+      let dist_after_last_pipe = dist_after_last_pipe + pipe.getWidthIncrement();
+    }
+
+    return;
+  }
+
+  /*
+  Determina si ha habido una colisión entre el pájaro y los bordes o tuberías.
+  */
+  method boolean findCollision()
+  {
+    var Pipe pipe;
+    var int i;
+
+    let i = 0;
+    while (i < count_pipes) {
+      let pipe = pipes[i];
+      if (collides(pipe)) {
+        return true;
+      }
+      let i = i + 1;
+    }
+
+    return false;
+  }
+
+  /*
+  Comprueba si el pájaro ha colisionado con una tubería específica.
+  */
+  method boolean collides(Pipe pipe)
+  {
+    // Si el pájaro golpea la parte superior de la pantalla.
+    if (bird.getYOffset() = 0) {
+      return true;
+    }
+
+    // Si el pájaro golpea la parte inferior de la pantalla.
+    if ((bird.getYOffset() + bird.getSizeY()) = 255) {
+      return true;
+    }
+
+    // Si el pájaro todavía está delante de la tubería.
+    if (pipe.getXOffset() > (bird.getXOffset() + bird.getSizeX() + 1)) {
+      return false;
+    }
+
+    // Si el pájaro ha pasado la tubería.
+    if ((pipe.getXOffset() + pipe.getWidthCurrent()) < bird.getXOffset()) {
+      return false;
+    }
+
+    // Si el pájaro golpea la sección superior de la tubería.
+    if (pipe.getGapTop() > bird.getYOffset()) {
+      return true;
+    }
+
+    // Si el pájaro golpea la sección inferior de la tubería.
+    if (pipe.getGapBottom() < (bird.getYOffset() + bird.getSizeY())) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /*
+  Libera la memoria del objeto FlappyBirdGame y sus propiedades.
+  */
+  method void dispose() {
+    var Pipe pipe;
+    var int i;
+    let i = 0;
+    while (i < count_pipes) {
+     let pipe = pipes[i];
+     do pipe.dispose();
+     let i = i + 1;
+    }
+
+    do bird.dispose();
+    do Memory.deAlloc(this);
+
+    return;
+  }
+}
