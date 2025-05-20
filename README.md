@@ -2,7 +2,7 @@
 
 Este proyecto es una implementación del clásico juego Flappy Bird utilizando el lenguaje Jack del curso Nand2Tetris. El juego incluye funcionalidades como el movimiento del pájaro, generación de tuberías con espacios aleatorios, detección de colisiones y un sistema de puntuación.
 
-![Flappy Bird Screenshot](screenshot.PNG)
+![Flappy Bird Screenshot](Screenshot.PNG)
 
 ## 🎮 Características
 
@@ -26,8 +26,8 @@ Para ejecutar este juego necesitas:
 ### Paso 1: Clonar el repositorio
 
 ```bash
-git clone https://github.com/TU_USUARIO/flappy-bird.git
-cd flappy-bird
+git clone https://github.com/nicolas61v/parcialOrganizacion.git
+cd parcialOrganizacion
 ```
 
 ### Paso 2: Compilar los archivos Jack
