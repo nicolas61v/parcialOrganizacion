@@ -15,6 +15,7 @@ class FlappyBirdGame
   field int jumps;                        // Número de saltos realizados.
   field int score;                        // Puntuación del jugador
   field Array scored_pipes;               // Registro de tuberías ya puntuadas
+  field int last_score;                   // Para controlar cuando actualizar el puntaje
 
   /*
   Constructor del juego Flappy Bird.
@@ -30,6 +31,7 @@ class FlappyBirdGame
     let dist_after_last_pipe = 0;
     let jumps = 1;
     let score = 0;                       // Inicializar puntaje a cero
+    let last_score = -1;                 // Para forzar primera actualización
     
     // Inicializar scored_pipes (en Jack, 0 = falso, -1 = verdadero)
     let i = 0;
@@ -57,10 +59,21 @@ class FlappyBirdGame
   }
 
   /*
-  Muestra el puntaje en la pantalla
+  Muestra el puntaje en la pantalla - solo actualiza cuando cambia
+  para evitar problemas de memoria
   */
   method void displayScore() {
-    do Output.moveCursor(5, 0);         // Posición más abajo para no sobreescribir instrucciones
+    // Solo actualizar si el puntaje cambió
+    if (score = last_score) {
+      return;  // No hacer nada si el puntaje no ha cambiado
+    }
+    
+    // Solo actualizar el puntaje una vez cada 20 fotogramas para evitar
+    // el problema de memoria
+    let last_score = score;
+    
+    // Mostrar el puntaje usando Output (solo cuando cambia)
+    do Output.moveCursor(5, 0);
     do Output.printString("Puntos: ");
     do Output.printInt(score);          // Mostrar el puntaje actual
     
@@ -157,6 +170,7 @@ class FlappyBirdGame
     let bird_fall_count = 1;
     let dist_after_last_pipe = dist_between_pipes;
     let score = 0;                       // Reiniciar puntaje al reiniciar el juego
+    let last_score = -1;                 // Forzar la primera actualización
     
     // Reiniciar el registro de tuberías puntuadas
     let i = 0;
