@@ -2,7 +2,7 @@
 
 Este proyecto es una implementación del clásico juego Flappy Bird utilizando el lenguaje Jack del curso Nand2Tetris. El juego incluye funcionalidades como el movimiento del pájaro, generación de tuberías con espacios aleatorios, detección de colisiones y un sistema de puntuación.
 
-![Flappy Bird Screenshot](screenshot.png)
+![Flappy Bird Screenshot](screenshot.PNG)
 
 ## 🎮 Características
 
