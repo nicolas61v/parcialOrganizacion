@@ -46,7 +46,7 @@ Esto generará los archivos .vm necesarios para cada archivo .jack en el directo
 2. Haz clic en "File" > "Load Program"
 3. Navega hasta la carpeta del proyecto y selecciónala
 4. Haz clic en "Yes" cuando pregunte si deseas cargar todos los archivos VM
-5. Configura la velocidad de ejecución (recomendado: "Fast")
+5. Configura la velocidad de ejecución (recomendado: "No Animation")
 6. Haz clic en el botón "Run" (►) para iniciar el juego
 
 ## 🕹️ Controles
@@ -114,3 +114,4 @@ Este proyecto está bajo la Licencia MIT - consulta el archivo LICENSE para más
 
 - Curso Nand2Tetris por proporcionar las herramientas y conocimientos necesarios
 - Dong Nguyen, creador del juego original Flappy Bird
+- Al profe Edison porque es quien nos enseño. Gracias
