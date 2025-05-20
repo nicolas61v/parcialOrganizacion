@@ -115,3 +115,11 @@ Este proyecto está bajo la Licencia MIT - consulta el archivo LICENSE para más
 - Curso Nand2Tetris por proporcionar las herramientas y conocimientos necesarios
 - Dong Nguyen, creador del juego original Flappy Bird
 - Al profe Edison porque es quien nos enseño. Gracias
+
+  ## 👨‍💻 Integrantes
+
+- Juan Simón Ospina  
+- Sebastián Durán Fernández  
+- Santiago Ramírez  
+- Nicolás Vásquez
+
